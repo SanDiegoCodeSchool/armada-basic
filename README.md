@@ -110,22 +110,16 @@ So while spinning our app up separately works locally, it's a bit of a chore and
 
 `magellan` provides hooks for us to execute arbitrary code on the `setup` and the `teardown` parts of its lifecycle by specifying [`setup_teardown`](https://github.com/TestArmada/magellan#setup-and-teardown) in our `magellan.json`.
 
-There are of course, _many_ ways to spin up your app so this **will** vary quite a bit based on your application and you as the developer know best how to spin up your app.
-
-**For Create React App specifically**
-
-We want to have a static server host our app. To do that, we'll want to build our app:
+We have a static server host our app, a simple web page, and some setup files. Let's start by installing our dependencies.
 
 ```
-$ npm run build
+$ npm i
 ```
 
-This will create a `/build` folder and we'll spin up a static server to host it on `localhost:3333`.
-
-We'll use `serve`, but again this is **completely up to your application**:
+We'll start our server and it will be available at `http://localhost:3333` from a browser using:
 
 ```
-$ npm install serve --save-dev
+$ node .
 ```
 
 We'll add a reference to our new setup file in our `magellan.json`
@@ -149,11 +143,11 @@ module.exports = class SetupTeardown {
   initialize() {
     this.server = http.createServer((request, response) =>
       handler(request, response, {
-        public: "./build"
+        public: "./public"
       })
     );
 
-    return new Promise(resolve => this.server.listen(3000, resolve));
+    return new Promise(resolve => this.server.listen(3333, resolve));
   }
 
   flush() {
@@ -170,57 +164,23 @@ $ ./node_modules/.bin/magellan --local_browser=default --config=test/automation/
 
 # Running a local Selenium grid on Docker
 
-## Install required Docker images
-
-docker pull selenium/hub
-docker pull selenium/node-firefox
-docker pull selenium/node-chrome
-docker pull selenium/node-firefox-debug
-docker pull selenium/node-chrome-debug
-
-
-## Start selenium hub from a docker container
+## Start the Selenium Grid
 
 ```
-$ docker run -d -p 4444:4444 --name selenium-hub selenium/hub
+$ docker-compose up
 ```
 
-You should now be able to see the console in a browser:
+You will see the logs in a window. It is safe to leave that terminal window and open another terminal to continue to working (you will be able to monitor the logs on the other terminal window).
 
-http://localhost:4444/grid/console
-
-
-Selenium hub is started and next, we need to start nodes from Docker container, we need to start chrome node and Firefox node. We have installed both the node images into our Docker container in the installation process.
-
-Now, let’s start with both the nodes one by one. Also, remember that you can run as many nodes as you wish. Here I have used two nodes only (chrome node and Firefox node).
-
-Command to run chrome node from Docker: 
-
-```
-$ docker run -d --link selenium-hub:hub selenium/node-chrome
-```
-
-Command to run firefox node from Docker: 
-
-```
-$ docker run -d --link selenium-hub:hub selenium/node-firefox
-```
-
-After running chrome node and Firefox node, we need to run Chrome debug node and Firefox debug node as well. We run and install the chrome debug node and Firefox debug node for demonstration purposes and at the end of this tutorial, I will run a test case in both the debug nodes by using VNC (Virtual Network Computing) viewer.
-
-```
-$ docker run -d -P --link selenium-hub:hub selenium/node-chrome-debug
-```
-
-```
-$ docker run -d -P --link selenium-hub:hub selenium/node-firefox-debug
-```
-
-View the address of the nodes:
+From a new terminal view the address of the nodes:
 
 ```
 $ docker ps -a
 ```
+
+## View Servers using VNC
+
+You may want to observe the tests running using VNC viewer.
 
 1. Download [VNC viewer](https://www.realvnc.com/en/connect/download/viewer/) so you can see the tests in action. 
 1. Run it.
@@ -228,52 +188,37 @@ $ docker ps -a
 1. The password is `secret`.
 
 
-# Running in Sauce Labs
 
-Now that we have things running in a single command, let's get things running on multiple browsers via Sauce Labs.
+# Running tests on a Selenium Grid with Magellan
 
-We'll use the `testarmada-magellan-saucelabs-executor` to tell `magellan` how it should execute on Sauce Labs (this is instead of `testarmada-magellan-local-executor` to run locally).
+We are going to use the [Magellan-SeleniumGrid-Executor](https://github.com/TestArmada/magellan-seleniumgrid-executor) to allow nightwatch to talk to our Selenium grid hub by forking it as a magellan child process.
 
-We'll install it.
+**NOTE: Make sure you have Magellan version 10.0.5 or greater installed**.
 
-```
-$ npm install testarmada-magellan-saucelabs-executor --save-dev
-```
+Check the package.json and ensure magellan is higher than 10.0.5.
 
-And follow the [How to use](https://github.com/TestArmada/magellan-saucelabs-executor#how-to-use) section in the docs.
+## How To Use the Selenium-Grid Executor
+Please follow the steps
 
-Add it to our `magellan.json` file under `executors`:
+ 1. `npm install testarmada-magellan-seleniumgrid-executor --save`
+ 2. add following block to your `magellan.json` (if there isn't a `magellan.json` please create one under your folder root)
+ ```javascript
+ "executors": [
+    "testarmada-magellan-seleniumgrid-executor"
+ ]
+ ```
+ 3. `./node_modules/.bin/magellan --config=./test/automation/conf/magellan.json --help` to see if you can see the following content printed out
+ ```
+ Executor-specific (testarmada-magellan-seleniumgrid-executor)
+   --seleniumgrid_browser=chrome        Run tests in chrome, firefox, etc.
+   --seleniumgrid_browsers=b1,b2,..     Run multiple browsers in parallel.
+   --seleniumgrid_host=localhost        Host for selenium grid (exclusive with seleniumgrid_url).
+   --seleniumgrid_port=4444             Port for selenium grid (exclusive with seleniumgrid_url).
+   --seleniumgrid_url=http://localhost:4URL for selenium grid (exclusive with seleniumgrid_host and seleniumgrid_port).
+   --seleniumgrid_list_browsers         List the available browsers configured.
+ ```
+Congratulations, you're all set. Run test on seleniumgrid with chrome
 
-```
-{
-   ...
-  "executors": [
-    "testarmada-magellan-local-executor",
-    "testarmada-magellan-saucelabs-executor"
-  ]
-  ...
-}
-```
-
-We'll also need to add a `sauce` profile to our `nightwatch.conf.js`
-
-`test/automation/conf/nightwatch.conf.js`
-
-```
-  test_settings: {
-    ...
-    sauce: {
-      selenium_host: "ondemand.saucelabs.com",
-      selenium_port: 80,
-      selenium: {
-        start_process: false
-      }
-    }
-  }
-```
-
-We can now run our tests in Sauce Labs by using the following command:
-
-```
-$ SAUCE_USERNAME=username SAUCE_ACCESS_KEY=saucekey SAUCE_CONNECT_VERSION=4.3.16 ./node_modules/.bin/magellan --config=test/automation/magellan.json --sauce_browsers chrome_latest_Windows_10_Desktop --sauce_create_tunnels
+```console
+$ ./node_modules/.bin/magellan --config=./test/automation/conf/magellan.json --seleniumgrid_browser chrome --seleniumgrid_host http://172.17.0.2:4444/wd/hub --seleniumgrid_port 4444 
 ```

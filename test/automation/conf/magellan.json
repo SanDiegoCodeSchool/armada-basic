@@ -1,6 +1,8 @@
 {
     "framework": "testarmada-magellan-nightwatch-plugin",
-    "executors": ["testarmada-magellan-local-executor"],
+    "executors": [
+        "testarmada-magellan-seleniumgrid-executor"
+     ],
     "nightwatch_config": "./test/automation/conf/nightwatch.conf.js",
     "setup_teardown": "./test/automation/setup_teardown.js"
 }

@@ -19,6 +19,7 @@
     "serve": "^10.1.2",
     "testarmada-magellan": "^11.0.1",
     "testarmada-magellan-local-executor": "^2.0.3",
-    "testarmada-magellan-nightwatch-plugin": "^8.0.2"
+    "testarmada-magellan-nightwatch-plugin": "^8.0.2",
+    "testarmada-magellan-seleniumgrid-executor": "^1.1.0"
   }
 }
