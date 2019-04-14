@@ -104,6 +104,10 @@ With our application still running, we'll execute `magellan` and tell it to run 
 $ ./node_modules/.bin/magellan --local_browser=default --config=test/automation/magellan.json
 ```
 
+```
+$ ./node_modules/.bin/magellan --config=./test/automation/conf/magellan.json --seleniumgrid_browser default --seleniumgrid_host http://172.17.0.2:4444/wd/hub --seleniumgrid_port 4444
+```
+
 # Starting your Application with Magellan
 
 So while spinning our app up separately works locally, it's a bit of a chore and won't work in a CI environment. To fix this we'll spin up our app programatically.
@@ -220,5 +224,10 @@ Please follow the steps
 Congratulations, you're all set. Run test on seleniumgrid with chrome
 
 ```console
-$ ./node_modules/.bin/magellan --config=./test/automation/conf/magellan.json --seleniumgrid_browser chrome --seleniumgrid_host http://172.17.0.2:4444/wd/hub --seleniumgrid_port 4444 
+$ ./node_modules/.bin/magellan --config=./test/automation/conf/magellan.json --seleniumgrid_browser default --seleniumgrid_host http://172.17.0.2:4444/wd/hub --seleniumgrid_port 4444
+```
+
+You should be able to see the console using:
+```
+$ http://localhost:4446/grid/console
 ```

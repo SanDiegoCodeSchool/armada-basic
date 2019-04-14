@@ -1,18 +1,23 @@
 module.exports = {
     src_folders: ["test/automation/tests"],
     selenium: {
-      start_process: true,
-      server_path: require("selenium-server").path,
-      host: "127.0.0.1",
-      port: 4444,
-      cli_args: {
-        "webdriver.chrome.driver": require("chromedriver").path
-      }
+      start_process: false
     },
     test_settings: {
       default: {
+        screenshots: {
+          enabled: false,
+          path: '',
+          on_failure: true,
+          on_error: true
+        },
+        launch_url: 'http://localhost',
+        selenium_port: 4444,
+        selenium_host: '172.18.0.2',
         desiredCapabilities: {
-          browserName: "chrome"
+          browserName: 'chrome',
+          javascriptEnabled: true,
+          acceptSslCerts: true
         }
       }
     }
